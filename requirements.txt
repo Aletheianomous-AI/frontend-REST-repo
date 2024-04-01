@@ -1,7 +1,9 @@
 accelerate
 pandas
 numpy
+flask
 matplotlib
 pandoc
 jupyterlab
 nbconvert
+pyodbc
