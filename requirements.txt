@@ -1,0 +1,7 @@
+accelerate
+pandas
+numpy
+matplotlib
+pandoc
+jupyterlab
+nbconvert
