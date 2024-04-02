@@ -1,6 +1,7 @@
 from pytz import timezone
 from RecordNotFoundException import RecordNotFoundException
 from NonExistentUserException import NonExistentUserException
+from user_account_management import UserAccountManagement
 
 import os
 import pyodbc
@@ -19,7 +20,7 @@ class ChatData():
         self.conn = pyodbc.connect(con_str)
     
         self.userId = userId
-        if UserAccountManagement.user_exists(conn, userId):
+        if UserAccountManagement.user_exists(self.conn, userId):
             self.userId = userId
         else:
             raise NonExistentUserException(userId)
@@ -32,8 +33,8 @@ class ChatData():
         query = """
             SELECT *
             FROM dbo.Chat_History
-            WHERE Chat_Id = """ + str(self.chat_id) + """
-            ORDER BY cu.Chat_ID DESC
+            WHERE Chat_Id = """ + str(chat_id) + """
+            ORDER BY Chat_ID DESC
         """
         cursor = self.conn.cursor()
         cursor.execute(query)
