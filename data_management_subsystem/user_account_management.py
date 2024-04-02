@@ -16,4 +16,12 @@ class UserAccountManagement():
             cursor = conn.cursor()
             cursor.execute(query)
             count = cursor.fetchall()
-            print(count)
+            count = count[0]
+            count = list(count)
+            count = count[0]
+            if count == 0:
+                return False
+            elif count == 1:
+                return True
+            else:
+                raise AssertionError("Expected user count to be 1 but got " + str(count))

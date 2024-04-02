@@ -7,5 +7,5 @@ class RecordNotFoundException(Exception):
         """PARAMETERS
         message - The message that will be raised.
         """
-        self.message = message
+        super().__init__(message)
 

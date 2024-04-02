@@ -1,5 +1,6 @@
 from pytz import timezone
 from RecordNotFoundException import RecordNotFoundException
+from NonExistentUserException import NonExistentUserException
 
 import os
 import pyodbc
@@ -9,19 +10,19 @@ import pandas as pd
 class ChatData():
     def __init__(self, userId):
     
-        server = os.environ(['ALETHEIANOMOUS_AI_SERVER'])
-        db_name = os.environ(['ALETHEIANOMOUS_AI_DB_NAME'])
-        uname = os.environ(['ALETHEIANOMOUS_AI_UNAME'])
-        passwrd = os.environ(['ALETHEIANOMOUS_AI_PASSWRD'])
+        server = os.environ.get('ALETHEIANOMOUS_AI_SERVER')
+        db_name = os.environ.get('ALETHEIANOMOUS_AI_DB_NAME')
+        uname = os.environ.get('ALETHEIANOMOUS_AI_UNAME')
+        passwrd = os.environ.get('ALETHEIANOMOUS_AI_PASSWRD')
 
         con_str = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};DATABASE={db_name};UID={uname};PWD={passwrd}'
         self.conn = pyodbc.connect(con_str)
     
         self.userId = userId
-        # if UserAccountManagement.user_exists(conn, userId):
-            #self.userId = userId
-        # else:
-            # raise NonExistentUserException(userId)
+        if UserAccountManagement.user_exists(conn, userId):
+            self.userId = userId
+        else:
+            raise NonExistentUserException(userId)
 
     def get_chat_by_cid(self, chat_id):
         """Returns the chat history by chat id.
