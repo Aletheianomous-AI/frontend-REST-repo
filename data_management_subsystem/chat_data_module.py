@@ -11,6 +11,45 @@ import pandas as pd
 
 
 class ChatData():
+    
+    def upload_citations(self, response_chat_id, citations_list):
+        """This function uploads citations related to this response_chat_id.
+
+            PARAMETERS
+            response_chat_id - The chat id that the citation(s) belongs to.
+            citations_list - A list of citations to upload.
+        """
+
+        citation_list_append_qry = """
+        BEGIN TRANSACTION
+            DECLARE @CitationID int;
+            IF (SELECT COUNT(1) FROM dbo.Citation WHERE link = '""" + citation+ """')
+                SELECT @CitationID = CitationID
+                FROM dbo.Citation WHERE link = '""" + citation+ """');
+            ELSE
+                SELECT @CitationID = (MAX(CitationID) + 1)
+                FROM dbo.Citation;
+                INSERT INTO dbo.Citation (CitationID, link)
+                VALUES (@CitationID, """ + citation + """);
+            
+            DECLARE @SurrogateKey;
+            SELECT @SurrogateKey = (MAX(SurrogateKey) + 1)
+            FROM dbo.Citation_Chat_History;
+
+            INSERT INTO dbo.Citation_Chat_History (SurrogateKey, CitationID, Chat_ID)
+            VALUES (@SurrogateKey, @CitationID, '""" + str(response_chat_id) + """')
+                        
+        END TRANSACTION
+        """
+
+        self.conn.autocommit= False
+        for citation in citations_list:
+            cursor = self.conn.cursor()
+            cursor.execute(citation_list_append_qry)
+            cursor.commit()
+            del cursor
+        self.conn.autocommit= True
+
     def connect(self):
         self.con_str = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={self.server};DATABASE={self.db_name};UID={self.uname};PWD={self.passwrd}'
     

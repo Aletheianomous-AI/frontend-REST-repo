@@ -3,8 +3,6 @@ from .chat_data_module import ChatData as cd
 from .NonExistentUserException import NonExistentUserException
 from datetime import datetime as dt
 
-import datetime
-
 
 app = Flask(__name__)
 
@@ -31,7 +29,7 @@ def post_chat(user_id):
 
 @app.route('/generate_response/<user_id>', methods=['POST'])
 def generate_response(user_id):
-    return json.dumps({'success': False, 'Exception data': "generate_response/<user_id> POST request not implemented."}), 501
+    #return json.dumps({'success': False, 'Exception data': "generate_response/<user_id> POST request not implemented."}), 501
     
     try:
         user_id = int(user_id)
@@ -41,10 +39,10 @@ def generate_response(user_id):
         
         json_data = request.get_json(silent=True)
         chat_input = json_data['chat_data']
-        backend_json_data = requests.post('backend_ip/generate_response', {'input': chat_input})
+        backend_json_data = request.post('backend_ip/generate_response', {'input': chat_input})
         robot_chat_id = chat_handler.log_chat(backend_json_data['output'], dt.now(), True)
         if 'citations' in backend_json_data.keys():
-            chat_data.upload_citations(robot_chat_id, backend_json_data['citations'])
+            chat_handler.upload_citations(robot_chat_id, backend_json_data['citations'])
         robot_chat_data = chat_handler.get_chat_by_cid(robot_chat_id)
 
         i = 0
