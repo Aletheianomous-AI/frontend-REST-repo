@@ -1,0 +1,19 @@
+    BEGIN TRANSACTION
+        DECLARE @CitationID int;
+        IF (SELECT COUNT(1) FROM dbo.Citation WHERE link = '""" + citation+ """')
+            SELECT @CitationID = CitationID
+            FROM dbo.Citation WHERE link = '""" + citation+ """');
+        ELSE
+            SELECT @CitationID = (MAX(CitationID) + 1)
+            FROM dbo.Citation;
+            INSERT INTO dbo.Citation (CitationID, link)
+            VALUES (@CitationID, """ + citation + """);
+        
+        DECLARE @SurrogateKey;
+        SELECT @SurrogateKey = (MAX(SurrogateKey) + 1)
+        FROM dbo.Citation_Chat_History;
+
+        INSERT INTO dbo.Citation_Chat_History (SurrogateKey, CitationID, Chat_ID)
+        VALUES (@SurrogateKey, @CitationID, '""" + str(response_chat_id) + """')
+                    
+    END TRANSACTION

@@ -20,26 +20,21 @@ class ChatData():
             citations_list - A list of citations to upload.
         """
 
-        citation_list_append_qry = """
-        BEGIN TRANSACTION
-            DECLARE @CitationID int;
-            IF (SELECT COUNT(1) FROM dbo.Citation WHERE link = '""" + citation+ """')
-                SELECT @CitationID = CitationID
-                FROM dbo.Citation WHERE link = '""" + citation+ """');
-            ELSE
-                SELECT @CitationID = (MAX(CitationID) + 1)
-                FROM dbo.Citation;
-                INSERT INTO dbo.Citation (CitationID, link)
-                VALUES (@CitationID, """ + citation + """);
-            
-            DECLARE @SurrogateKey;
-            SELECT @SurrogateKey = (MAX(SurrogateKey) + 1)
-            FROM dbo.Citation_Chat_History;
 
-            INSERT INTO dbo.Citation_Chat_History (SurrogateKey, CitationID, Chat_ID)
-            VALUES (@SurrogateKey, @CitationID, '""" + str(response_chat_id) + """')
-                        
-        END TRANSACTION
+        citation_list_append_qry = """
+        DECLARE @CitationID int;
+        IF EXISTS (SELECT * FROM dbo.Citation WHERE Link = '""" + citation + """')
+            SELECT @CitationID = Citation_ID
+            FROM dbo.Citation WHERE Link = '""" + citation + """';
+        ELSE
+            SELECT @CitationID = (MAX(Citation_ID) + 1)
+            FROM dbo.Citation;
+
+            IF (@CitationID IS NULL)
+                SET @CitationID = 1;
+            
+            INSERT INTO dbo.Citation (Citation_ID, Link)
+            VALUES (@CitationID, '""" + citation + """');
         """
 
         self.conn.autocommit= False
