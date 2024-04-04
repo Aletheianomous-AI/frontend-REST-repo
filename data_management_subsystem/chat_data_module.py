@@ -1,23 +1,48 @@
 from pytz import timezone
-from RecordNotFoundException import RecordNotFoundException
-from NonExistentUserException import NonExistentUserException
-from user_account_management import UserAccountManagement
+from .ConnectionFailureException import ConnectionFailureException
+from .RecordNotFoundException import RecordNotFoundException
+from .NonExistentUserException import NonExistentUserException
+from .user_account_management import UserAccountManagement
 
 import os
+import time
 import pyodbc
 import pandas as pd
 
 
 class ChatData():
+    def connect(self):
+        self.con_str = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={self.server};DATABASE={self.db_name};UID={self.uname};PWD={self.passwrd}'
+    
+        connection_successful: bool = False
+        con_attempts: int = 0
+    
+        
+        while (connection_successful == False) and (con_attempts < 5):
+            try:    
+                self.conn = pyodbc.connect(self.con_str)
+                
+            except Exception as e:
+                print(e)
+                if con_attempts >=5:
+                    raise ConnectionFailureException("Sorry, your chat could not be sent.")
+                else:
+                    delay_time = [1,5,10,30,60]
+                    time.sleep(delay_time[con_attempts])
+            con_attempts+=1
+
+    def close_conn(self):
+        self.conn.close()
+        self.conn = None
+    
     def __init__(self, userId):
     
-        server = os.environ.get('ALETHEIANOMOUS_AI_SERVER')
-        db_name = os.environ.get('ALETHEIANOMOUS_AI_DB_NAME')
-        uname = os.environ.get('ALETHEIANOMOUS_AI_UNAME')
-        passwrd = os.environ.get('ALETHEIANOMOUS_AI_PASSWRD')
-
-        con_str = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};DATABASE={db_name};UID={uname};PWD={passwrd}'
-        self.conn = pyodbc.connect(con_str)
+        self.server = os.environ.get('ALETHEIANOMOUS_AI_SERVER')
+        self.db_name = os.environ.get('ALETHEIANOMOUS_AI_DB_NAME')
+        self.uname = os.environ.get('ALETHEIANOMOUS_AI_UNAME')
+        self.passwrd = os.environ.get('ALETHEIANOMOUS_AI_PASSWRD')
+        self.conn = None
+        self.connect()
     
         self.userId = userId
         if UserAccountManagement.user_exists(self.conn, userId):
@@ -64,25 +89,29 @@ class ChatData():
         print("Parsed chat data: " + chat_data)
 
         timestamp = timestamp.astimezone(timezone('America/New_York'))
-        timestamp = timestamp.strftime("%Y%m%d %I:%M:%S %p")
+        timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
         print(timestamp)
+
+        if is_from_bot:
+            is_from_bot_int: int = 1
+        else:
+            is_from_bot_int: int = 0
 
         # CREATE SQL QUERY THAT UPLOADS CHAT DATA.
         upload_query = ("""
-        BEGIN TRANSACTION
             DECLARE @ChatID int;
     		SELECT @ChatID = (MAX(Chat_ID) + 1)
             FROM dbo.Chat_History;
             INSERT INTO dbo.Chat_History (Chat_ID, Chat_Content, Belongs_To_Bot, Time_Of_Output)
-            VALUES (@ChatID, '""" + chat_data + """', 1, '""" + timestamp+ """');
-            INSERT INTO dbo.Chat_User (Chat_ID, UserID) VALUES (@ChatID, 1);
-        COMMIT
-
+            VALUES (@ChatID, '""" + chat_data + """', """ + str(is_from_bot_int) + """, '""" + timestamp+ """');
+            INSERT INTO dbo.Chat_User (Chat_ID, UserID) VALUES (@ChatID, """ + str(self.userId) + """);
         """
         )
-    
+        self.conn.autocommit = False
         cursor = self.conn.cursor()
         cursor.execute(upload_query)
+        self.conn.commit()
+        self.conn.autocommit = True
         del cursor
 
         cursor = self.conn.cursor()
@@ -92,6 +121,7 @@ class ChatData():
         )
         cursor.execute(chat_id_qry)
         chat_id = cursor.fetchall()
+        print("Uploaded chat as chat_id " + str(chat_id))
         return chat_id
     
     def return_chat_history(self):
