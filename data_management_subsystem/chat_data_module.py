@@ -97,7 +97,7 @@ class ChatData():
         query = """
             SELECT *
             FROM dbo.Chat_History
-            WHERE Chat_Id = """ + str(chat_id) + """
+            WHERE Chat_ID = """ + str(chat_id) + """
             ORDER BY Chat_ID DESC
         """
         cursor = self.conn.cursor()

@@ -1,0 +1,8 @@
+SELECT *
+FROM dbo.Chat_History AS ch
+INNER JOIN dbo.Citation_Chat_History AS cch
+    ON (cch.Chat_ID = ch.Chat_ID)
+INNER JOIN dbo.Citation as c
+    ON (cch.CitationID = c.CitationID)
+WHERE ch.Chat_ID = Chat_ID
+ORDER BY ch.Chat_ID DESC

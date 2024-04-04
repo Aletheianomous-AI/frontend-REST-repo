@@ -1,0 +1,24 @@
+IF (SELECT 1 FROM dbo.Citation AS c
+INNER JOIN dbo.Citation_Chat_History AS cch
+    ON (cch.CitationID = c.CitationID)
+INNER JOIN dbo.Chat_History AS ch
+    ON (cch.Chat_ID = ch.Chat_ID)
+INNER JOIN dbo.Chat_User AS cu
+    ON (ch.Chat_ID = cu.Chat_ID)
+WHERE cu.UserID = UserID
+)
+    SELECT *
+    FROM dbo.Chat_History AS ch
+    INNER JOIN dbo.Chat_User AS cu
+        ON (cu.Chat_ID = ch.Chat_ID)
+    INNER JOIN dbo.Citation_Chat_History AS cch
+        ON (cch.Chat_ID = ch.Chat_ID)
+    INNER JOIN dbo.Citation as c
+        ON (cch.CitationID = c.CitationID)
+    WHERE cu.UserID = UserID
+    ORDER BY cu.Chat_ID DESC
+ELSE
+    SELECT *
+    FROM dbo.Chat_History
+    WHERE Chat_ID = Chat_ID
+    ORDER BY Chat_ID DESC
