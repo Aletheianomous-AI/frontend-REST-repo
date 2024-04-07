@@ -2,7 +2,7 @@
 This file documents the format to send the REST API calls from the server generating the web page to the front-end server that handles these API calls.
 
 # Connection setup
-The REST API calls should be sent to the front-end server with the following ip address: `http://172.208.66.211`. Currently, the server is at its development stage, so all calls should be sent to port 5000, which can be specified by typing `http://172.208.66.211:5000`. From now on, this address will be referred as `<server_ip>`. To activate the Flask handler, do the following:
+The REST API calls should be sent to the front-end server with the following ip address: `https://172.208.66.211`. Currently, the server is at its development stage, so all calls should be sent to port 5000, which can be specified by typing `https://172.208.66.211:5000`. From now on, this address will be referred as `<server_ip>`. To activate the Flask handler, do the following:
   1. SSH to the front-end server using the .pem authentication key.
   2. Type `cd frontend-REST-repo`
   3. Type `source .env/bin/activate`
