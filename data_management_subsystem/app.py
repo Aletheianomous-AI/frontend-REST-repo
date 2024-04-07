@@ -49,7 +49,6 @@ def generate_response(user_id):
         backend_json_data = requests.post((backend_ip + '/generate_response/'), json={'input': chat_input})
         backend_json_data = backend_json_data.json()
         robot_chat_id = chat_handler.log_chat(backend_json_data['output'], dt.now(), True)
-        print(robot_chat_id)
         if ('citations' in backend_json_data.keys()) and (backend_json_data['citations'] is not None):
             chat_handler.upload_citations(robot_chat_id, backend_json_data['citations'])
         robot_chat_data = chat_handler.get_chat_by_cid(robot_chat_id)

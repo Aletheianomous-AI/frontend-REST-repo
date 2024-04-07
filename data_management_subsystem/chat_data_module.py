@@ -23,9 +23,7 @@ class ChatData():
         citation_url = ""
 
 
-#        self.conn.autocommit= False
         for citation in citations_list:
-            print(citation)
             citation_url = citation
             citation_url = citation.replace("'", "''")
             cursor = self.conn.cursor()
@@ -45,22 +43,9 @@ class ChatData():
                             VALUES (@CitationID, ?);
                         END
             """
-
-            #citation_list_append_qry = """
-            #    DECLARE @CitationID int;
-            #    IF EXISTS (SELECT * FROM dbo.Citation WHERE Link = ?)
-            #            SELECT 1
-            #    ELSE
-            #            SELECT 0
-            #"""
-
             cursor.execute(citation_list_append_qry, citation_url, citation_url, citation_url)
 
-            #cursor.execute(citation_list_append_qry, citation_url)
-            #print(cursor.fetchall())
-#            cursor.commit()
             del cursor
-#        self.conn.autocommit= True
 
     def connect(self):
         self.con_str = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={self.server};DATABASE={self.db_name};UID={self.uname};PWD={self.passwrd}'
@@ -76,7 +61,7 @@ class ChatData():
             except Exception as e:
                 print(e)
                 if con_attempts >=5:
-                    raise ConnectionFailureException("Sorry, your chat could not be sent.")
+                    raise ConnectionFailureException("Sorry, your message could not be sent.")
                 else:
                     delay_time = [1,5,10,30,60]
                     time.sleep(delay_time[con_attempts])
@@ -107,7 +92,6 @@ class ChatData():
         chat_id - The chat ID to return.
         """
 
-        print(chat_id)
 
         query = """
             SELECT *
@@ -140,11 +124,9 @@ class ChatData():
         """
        
         chat_data = chat_data.replace("'", "''")
-        print("Parsed chat data: " + chat_data)
 
         timestamp = timestamp.astimezone(timezone('America/New_York'))
         timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        print(timestamp)
 
         if is_from_bot:
             is_from_bot_int: int = 1
@@ -176,7 +158,6 @@ class ChatData():
         cursor.execute(chat_id_qry)
         chat_id = cursor.fetchall()
         chat_id = chat_id[0][0]
-        print("Uploaded chat as chat_id " + str(chat_id))
         return chat_id
     
     def return_chat_history(self):
