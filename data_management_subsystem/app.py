@@ -3,6 +3,9 @@ from .chat_data_module import ChatData as cd
 from .NonExistentUserException import NonExistentUserException
 from datetime import datetime as dt
 
+import os
+import traceback
+import requests
 
 app = Flask(__name__)
 
@@ -19,10 +22,11 @@ def post_chat(user_id):
             user_chat_id = chat_handler.log_chat(chat_data, timestamp, False)
             chat_handler.close_conn()
             
-            return json.dumps({'success': True, 'user_chat_id': 1}), 201
+            return json.dumps({'success': True, 'user_chat_id': int(user_chat_id)}), 201
         except NonExistentUserException as neue:
             return json.dumps({'success': False, 'exception': {"name": "NonExistentUserException", "description": str(neue)}}), 400
         except Exception as e:
+            traceback.print_exc()
             return json.dumps({'success': False, 'exception': {"name": "Exception", "description": str(e)}}), 500
     else:
         return json.dumps({'success': False}), 400
@@ -30,7 +34,7 @@ def post_chat(user_id):
 @app.route('/generate_response/<user_id>', methods=['POST'])
 def generate_response(user_id):
     #return json.dumps({'success': False, 'Exception data': "generate_response/<user_id> POST request not implemented."}), 501
-    
+    backend_ip = os.environ.get("BACKEND_IP")
     try:
         user_id = int(user_id)
         chat_handler = cd(user_id)
@@ -39,18 +43,23 @@ def generate_response(user_id):
         
         json_data = request.get_json(silent=True)
         chat_input = json_data['chat_data']
-        backend_json_data = request.post('backend_ip/generate_response', {'input': chat_input})
+        if 'debug_mode' in json_data.keys():
+            if json_data['debug_mode'] == 'true':
+                backend_ip += ":5000"
+        backend_json_data = requests.post((backend_ip + '/generate_response/'), json={'input': chat_input})
+        backend_json_data = backend_json_data.json()
         robot_chat_id = chat_handler.log_chat(backend_json_data['output'], dt.now(), True)
-        if 'citations' in backend_json_data.keys():
+        print(robot_chat_id)
+        if ('citations' in backend_json_data.keys()) and (backend_json_data['citations'] is not None):
             chat_handler.upload_citations(robot_chat_id, backend_json_data['citations'])
         robot_chat_data = chat_handler.get_chat_by_cid(robot_chat_id)
 
-        i = 0
         response_time = robot_chat_data[3].strftime("%m/%d/%Y, %I:%M:%S %p")
-        content_json = {'time_in_edt': response_time, 'content': robot_chat_id[1], 'citations': backend_json_data['citations']}
+        content_json = {'time_in_edt': response_time, 'content': robot_chat_data[1], 'citations': backend_json_data['citations']}
         chat_handler.close_conn()        
         return json.dumps({'success': True, 'ai_output': content_json}), 201
     except Exception as e:
+        traceback.print_exc()
         return json.dumps({'success': False, 'Exception data': str(e)}), 500
 
     

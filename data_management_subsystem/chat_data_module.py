@@ -20,30 +20,47 @@ class ChatData():
             citations_list - A list of citations to upload.
         """
 
+        citation_url = ""
 
-        citation_list_append_qry = """
-        DECLARE @CitationID int;
-        IF EXISTS (SELECT * FROM dbo.Citation WHERE Link = '""" + citation + """')
-            SELECT @CitationID = Citation_ID
-            FROM dbo.Citation WHERE Link = '""" + citation + """';
-        ELSE
-            SELECT @CitationID = (MAX(Citation_ID) + 1)
-            FROM dbo.Citation;
 
-            IF (@CitationID IS NULL)
-                SET @CitationID = 1;
-            
-            INSERT INTO dbo.Citation (Citation_ID, Link)
-            VALUES (@CitationID, '""" + citation + """');
-        """
-
-        self.conn.autocommit= False
+#        self.conn.autocommit= False
         for citation in citations_list:
+            print(citation)
+            citation_url = citation
+            citation_url = citation.replace("'", "''")
             cursor = self.conn.cursor()
-            cursor.execute(citation_list_append_qry)
-            cursor.commit()
+            citation_list_append_qry = """
+                DECLARE @CitationID int;
+                IF EXISTS (SELECT * FROM dbo.Citation WHERE Link = ?)
+                        BEGIN
+                            SELECT @CitationID = Citation_ID
+                            FROM dbo.Citation WHERE Link = ?;
+                        END
+                ELSE 
+                        BEGIN
+                            SELECT @CitationID = (MAX(Citation_ID) + 1)
+                            FROM dbo.Citation;
+                       
+                            INSERT INTO dbo.Citation (Citation_ID, Link)
+                            VALUES (@CitationID, ?);
+                        END
+            """
+
+            #citation_list_append_qry = """
+            #    DECLARE @CitationID int;
+            #    IF EXISTS (SELECT * FROM dbo.Citation WHERE Link = ?)
+            #            SELECT 1
+            #    ELSE
+            #            SELECT 0
+            #"""
+
+            cursor.execute(citation_list_append_qry, citation_url, citation_url, citation_url)
+
+            #cursor.execute(citation_list_append_qry, citation_url)
+            #print(cursor.fetchall())
+#            cursor.commit()
             del cursor
-        self.conn.autocommit= True
+#        self.conn.autocommit= True
 
     def connect(self):
         self.con_str = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={self.server};DATABASE={self.db_name};UID={self.uname};PWD={self.passwrd}'
@@ -89,14 +106,17 @@ class ChatData():
         PARAMETER
         chat_id - The chat ID to return.
         """
+
+        print(chat_id)
+
         query = """
             SELECT *
             FROM dbo.Chat_History
-            WHERE Chat_ID = """ + str(chat_id) + """
+            WHERE Chat_ID = ? 
             ORDER BY Chat_ID DESC
         """
         cursor = self.conn.cursor()
-        cursor.execute(query)
+        cursor.execute(query, chat_id)
         row = cursor.fetchone()
         del cursor
         if row is not None:
@@ -155,6 +175,7 @@ class ChatData():
         )
         cursor.execute(chat_id_qry)
         chat_id = cursor.fetchall()
+        chat_id = chat_id[0][0]
         print("Uploaded chat as chat_id " + str(chat_id))
         return chat_id
     
