@@ -4,3 +4,4 @@ flask
 matplotlib
 pandoc
 pyodbc
+pyopenssl
