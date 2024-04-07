@@ -46,7 +46,7 @@ def generate_response(user_id):
         if 'debug_mode' in json_data.keys():
             if json_data['debug_mode'] == 'true':
                 backend_ip += ":5000"
-        backend_json_data = requests.post((backend_ip + '/generate_response/'), json={'input': chat_input})
+        backend_json_data = requests.post((backend_ip + '/generate_response/'), json={'input': chat_input}, verify=False)
         backend_json_data = backend_json_data.json()
         robot_chat_id = chat_handler.log_chat(backend_json_data['output'], dt.now(), True)
         if ('citations' in backend_json_data.keys()) and (backend_json_data['citations'] is not None):
