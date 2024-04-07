@@ -90,4 +90,4 @@ def get_chat(user_id):
         return json.dumps({'success': False, 'content': "You didnt ask to get it!"}), 400
 
 if __name__=="__main__":
-    app.run()
+    app.run(ssl_context='adhoc')
