@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, json
-from .chat_data_module import ChatData as cd
-from .NonExistentUserException import NonExistentUserException
+from chat_data_module import ChatData as cd
+from NonExistentUserException import NonExistentUserException
 from datetime import datetime as dt
 
 import os
