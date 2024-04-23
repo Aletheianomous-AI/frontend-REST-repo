@@ -1,8 +1,8 @@
 from pytz import timezone
-from .ConnectionFailureException import ConnectionFailureException
-from .RecordNotFoundException import RecordNotFoundException
-from .NonExistentUserException import NonExistentUserException
-from .user_account_management import UserAccountManagement
+from ConnectionFailureException import ConnectionFailureException
+from RecordNotFoundException import RecordNotFoundException
+from NonExistentUserException import NonExistentUserException
+from user_account_management import UserAccountManagement
 
 import os
 import time
